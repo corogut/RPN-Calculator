@@ -1,0 +1,356 @@
+#include "calculator.hpp"
+#include "gtest/gtest.h"
+
+class MyFirstTest : public ::testing::Test{};
+
+TEST_F(MyFirstTest, test1) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","1+2  +1 /*comment*/ +6");
+  EXPECT_EQ(c.get_variable("a"),10);
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("b","a+1");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.get_variable("b"),11);
+  EXPECT_EQ(c.get_variable("a"),10);
+  EXPECT_EQ(c.get_variable("d"),0);
+  EXPECT_EQ(c.is_defined("a"),true);
+  EXPECT_EQ(c.is_defined("d"),false);
+
+  ok=c.add_line("a","a+2");
+  EXPECT_EQ(c.get_variable("a"),12);
+
+  ok= c.add_line("a","10 * + 3");
+  EXPECT_EQ(ok,false);
+  EXPECT_EQ(c.get_variable("a"),12);
+
+  c.clear();
+  ok=c.add_line("a","1+2");
+  EXPECT_EQ(c.get_variable("a"),3);
+  EXPECT_EQ(ok,true);
+
+  Calculator d;
+  d=c;
+
+  EXPECT_EQ(c.get_variable("a"),3);
+  EXPECT_EQ(d.get_variable("a"),3);
+
+  c.clear();
+
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(d.get_variable("a"),3);
+
+}
+
+TEST_F(MyFirstTest, test2) {
+  Calculator calc;
+  Calculator calc2;
+  calc2=calc;
+  bool ok;
+  EXPECT_EQ(calc.is_defined("alpha"),false);
+  EXPECT_EQ(calc2.is_defined("alpha"),false);
+  EXPECT_EQ(calc.get_variable("alpha"),0);
+  EXPECT_EQ(calc2.get_variable("alpha"),0);
+  ok=calc.add_line("alpha","((15/(7-(1+1)))*3)-(2+(1+1))");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(calc.get_variable("alpha"),5);
+  EXPECT_EQ(calc2.get_variable("alpha"),0);
+  calc2=calc;
+  EXPECT_EQ(calc.get_variable("alpha"),5);
+  EXPECT_EQ(calc2.get_variable("alpha"),5);
+  calc.clear();
+  EXPECT_EQ(calc.get_variable("alpha"),0);
+  EXPECT_EQ(calc2.get_variable("alpha"),5);
+  EXPECT_EQ(calc.is_defined("alpha"),false);
+  EXPECT_EQ(calc2.is_defined("alpha"),true);
+  ok=calc.add_line("alpha","2%3"); 
+  EXPECT_EQ(calc.get_variable("alpha"),2);
+  EXPECT_EQ(calc2.get_variable("alpha"),5);
+  EXPECT_EQ(ok,true);
+}
+
+
+TEST_F(MyFirstTest, test3) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("b", "(((((14%12)))))");
+  EXPECT_EQ(c.get_variable("b"),2);
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.is_defined("b"),true);
+  ok=c.add_line("b","(5++)");
+  EXPECT_EQ(ok,false);
+  EXPECT_EQ(c.get_variable("b"),2);
+}
+
+TEST_F(MyFirstTest, test4) {
+  Calculator c; 
+  bool ok;
+  ok=c.add_line("car","7+4)");
+  EXPECT_EQ(c.is_defined("car"),false);
+  EXPECT_EQ(c.get_variable("car"),0);
+  EXPECT_EQ(c.is_defined("hi"),false);
+  EXPECT_EQ(c.is_defined("car"),false);
+  ok=c.add_line("d","car+hi)");
+  EXPECT_EQ(c.get_variable("d"),0);
+  EXPECT_EQ(ok,false);
+  EXPECT_EQ(c.is_defined("d"),false);
+}
+
+TEST_F(MyFirstTest, test5) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","14-7*3");
+  ok=c.add_line("b","a+8");
+  ok=c.add_line("c","b*a+(14+3)");
+  ok=c.add_line("d","c/10");
+  EXPECT_EQ(c.get_variable("a"),-7);
+  EXPECT_EQ(c.get_variable("b"),1);
+  EXPECT_EQ(c.get_variable("c"),10);
+  EXPECT_EQ(c.get_variable("d"),1);
+  c.clear();
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),0);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),false);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),false);
+
+}
+
+TEST_F(MyFirstTest, test6) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","15/(2+1)+3");
+  ok=c.add_line("b","a-100");
+  ok=c.add_line("c","b/a+(14+3)");
+  ok=c.add_line("d","           ");
+  Calculator d;
+  ok=d.add_line("a","a*3");
+  ok=d.add_line("b","9*8");
+  ok=d.add_line("c","b-a+(14+3)");
+  ok=d.add_line("d","b/10");
+  EXPECT_EQ(c.get_variable("a"),8);
+  EXPECT_EQ(c.get_variable("b"),-92);
+  EXPECT_EQ(c.get_variable("c"),5.5);
+  EXPECT_EQ(c.get_variable("d"),0);
+  EXPECT_EQ(d.get_variable("a"),0);
+  EXPECT_EQ(d.get_variable("b"),72);
+  EXPECT_EQ(d.get_variable("c"),0);
+  EXPECT_EQ(d.get_variable("d"),7.2);
+  c=d;
+  EXPECT_EQ(d.get_variable("a"),0);
+  EXPECT_EQ(d.get_variable("b"),72);
+  EXPECT_EQ(d.get_variable("c"),0);
+  EXPECT_EQ(d.get_variable("d"),7.2);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),72);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),7.2);
+  d.clear();
+  EXPECT_EQ(d.get_variable("a"),0);
+  EXPECT_EQ(d.get_variable("b"),0);
+  EXPECT_EQ(d.get_variable("c"),0);
+  EXPECT_EQ(d.get_variable("d"),0);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),72);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),7.2);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),true);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),true);
+  EXPECT_EQ(d.is_defined("a"),false);
+  EXPECT_EQ(d.is_defined("b"),false);
+  EXPECT_EQ(d.is_defined("c"),false);
+  EXPECT_EQ(d.is_defined("d"),false);
+
+
+}
+
+TEST_F(MyFirstTest, test7) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","15/(2+1)+3");
+  ok=c.add_line("a","a-100");
+  ok=c.add_line("a","b/a+(14+3)");
+  ok=c.add_line("a","a+5           ");
+  EXPECT_EQ(c.get_variable("a"),-87);
+  EXPECT_EQ(c.get_variable("a"),-87);
+  EXPECT_EQ(c.get_variable("a"),-87);
+  EXPECT_EQ(c.get_variable("a"),-87);
+
+}
+
+TEST_F(MyFirstTest, test8) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","(14-7*3");
+  ok=c.add_line("b","a+8");
+  ok=c.add_line("c","((((14+3");
+  ok=c.add_line("d","/10");
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),0);
+
+}
+
+TEST_F(MyFirstTest, test9) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","(14-7*3");
+  ok=c.add_line("b","a+8");
+  ok=c.add_line("c","((((14+3");
+  ok=c.add_line("d","/10");
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),0);
+
+}
+
+TEST_F(MyFirstTest, test10) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","19%4+7");
+  ok=c.add_line("b","b*4");
+  ok=c.add_line("c","a*9+7");
+  ok=c.add_line("d","100-c*(3+0)");
+  EXPECT_EQ(c.get_variable("a"),10);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),97);
+  EXPECT_EQ(c.get_variable("d"),-191);
+
+}
+
+TEST_F(MyFirstTest, test11) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("apple","19%//Can you see me?\n4+7");
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("blueberry","blueberry*4");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("cherry","apple*9+7//You cant see me");
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("dragonfruit","100-cherry*/**/(3+0)");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.get_variable("apple"),10);
+  EXPECT_EQ(c.get_variable("blueberry"),0);
+  EXPECT_EQ(c.get_variable("cherry"),97);
+  EXPECT_EQ(c.get_variable("dragonfruit"),-191);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),false);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),false);
+  EXPECT_EQ(c.is_defined("apple"),true);
+  EXPECT_EQ(c.is_defined("blueberry"),false);
+  EXPECT_EQ(c.is_defined("cherry"),true);
+  EXPECT_EQ(c.is_defined("dragonfruit"),true);
+
+}
+
+TEST_F(MyFirstTest, test12) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","/*14-17*(41*3)/ * +14*/");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("b","2+1-12/3/*9-7");
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("c","71*4/9+");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("d","b*((19+7)-71)*(1-2)");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),true);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),true);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),-1);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),-45);
+
+}
+
+TEST_F(MyFirstTest, test13) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","/*14-17*(41*3)/ * +14*/");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("b","2+1-12/3/*9-7");
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("c","71*4/9+");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("d","b*((19+7)-71)*(1-2)");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),true);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),true);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),-1);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),-45);
+  c.clear();
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),false);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),false);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),0);
+ 
+}
+
+TEST_F(MyFirstTest, test14) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","// Nothing+To-See/Here");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("b","/*47-20*(71+9)/4*/");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("c","71*4/10*");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("d","car a*((19+7)-71)*(1-2)");
+  EXPECT_EQ(ok,false);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),false);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),false);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),0);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),0);
+
+}
+
+TEST_F(MyFirstTest, test15) {
+  Calculator c;
+  bool ok;
+  ok=c.add_line("a","19*74 12 -90*27");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("b","27-12*3");
+  EXPECT_EQ(ok,true);
+  ok=c.add_line("c","42*27 car-(27+7)");
+  EXPECT_EQ(ok,false);
+  ok=c.add_line("d","2+3*4+5*b");
+  EXPECT_EQ(ok,true);
+  EXPECT_EQ(c.is_defined("a"),false);
+  EXPECT_EQ(c.is_defined("b"),true);
+  EXPECT_EQ(c.is_defined("c"),false);
+  EXPECT_EQ(c.is_defined("d"),true);
+  EXPECT_EQ(c.get_variable("a"),0);
+  EXPECT_EQ(c.get_variable("b"),-9);
+  EXPECT_EQ(c.get_variable("c"),0);
+  EXPECT_EQ(c.get_variable("d"),-31);
+
+
+
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
